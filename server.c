@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#define PORT "9034"   // port we're listening on
+#define PORT "4000"   // port we're listening on
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -119,11 +119,12 @@ int main(void)
                             fdmax = newfd;
                         }
                         printf("selectserver: new connection from %s on "
-                            "socket %d\n",
+                            "socket %d on port %d\n",
                             inet_ntop(remoteaddr.ss_family,
                                 get_in_addr((struct sockaddr*)&remoteaddr),
                                 remoteIP, INET6_ADDRSTRLEN),
-                            newfd);
+                            newfd,
+                            ntohs(remoteaddr.ss_family));
                     }
                 } else {
                     // handle data from a client
@@ -138,18 +139,7 @@ int main(void)
                         close(i); // bye!
                         FD_CLR(i, &master); // remove from master set
                     } else {
-                        // we got some data from a client
-                        for(j = 0; j <= fdmax; j++) {
-                            // send to everyone!
-                            if (FD_ISSET(j, &master)) {
-                                // except the listener and ourselves
-                                if (j != listener && j != i) {
-                                    if (send(j, buf, nbytes, 0) == -1) {
-                                        perror("send");
-                                    }
-                                }
-                            }
-                        }
+                        send(i, buf, nbytes, 0);
                     }
                 } // END handle data from client
             } // END got new incoming connection

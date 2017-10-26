@@ -10,7 +10,7 @@
 
 #include <arpa/inet.h>
 
-#define PORT "3490" // the port client will be connecting to 
+#define PORT "4000" // the port client will be connecting to 
 
 #define MAXDATASIZE 100 // max number of bytes we can get at once 
 
@@ -74,7 +74,8 @@ int main(int argc, char *argv[])
 
     freeaddrinfo(servinfo); // all done with this structure
 
-    if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+    send(sockfd, "salam", 6, 0);
+    if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) < 0) {
         perror("recv");
         exit(1);
     }
