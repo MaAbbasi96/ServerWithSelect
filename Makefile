@@ -2,19 +2,19 @@ CC=gcc
 
 all: server miniserver
 
-server.o: server.c
+server: server.o functions.o
+	$(CC) server.o functions.o -o server
+
+miniserver: miniserver.o functions.o
+	$(CC) miniserver.o functions.o -o miniserver
+
+server.o: server.c functions.h
 	$(CC) -c server.c -o server.o
 
-server: server.o
-	$(CC) server.o -o server
-
-miniserver.o: miniserver.c
+miniserver.o: miniserver.c functions.h
 	$(CC) -c miniserver.c -o miniserver.o
 
-miniserver: miniserver.o
-	$(CC) miniserver.o -o miniserver
-
-functions.o: functions.c functions.h
+functions.o: functions.h functions.c
 	$(CC) -c functions.c
 
 clean: 

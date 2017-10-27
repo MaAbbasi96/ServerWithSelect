@@ -1,13 +1,12 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
 #include <string.h>
+#include <unistd.h>
 #include <netdb.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include "functions.h"
 
 #define PORT "4000" // the port client will be connecting to 
 
@@ -32,7 +31,7 @@ int main(int argc, char *argv[])
     char s[INET6_ADDRSTRLEN];
 
     if (argc != 2) {
-        fprintf(stderr,"usage: client hostname\n");
+        perror("usage: client hostname\n");
         exit(1);
     }
 
@@ -41,7 +40,6 @@ int main(int argc, char *argv[])
     hints.ai_socktype = SOCK_STREAM;
 
     if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
         return 1;
     }
 
@@ -63,13 +61,15 @@ int main(int argc, char *argv[])
     }
 
     if (p == NULL) {
-        fprintf(stderr, "client: failed to connect\n");
+        perror("client: failed to connect\n");
         return 2;
     }
 
     inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
             s, sizeof s);
-    printf("client: connecting to %s\n", s);
+    print("client: connecting to ");
+    print(s);
+    print("\n");
 
     freeaddrinfo(servinfo); // all done with this structure
 
@@ -81,7 +81,9 @@ int main(int argc, char *argv[])
 
     buf[numbytes] = '\0';
 
-    printf("client: received '%s'\n",buf);
+    print("client: received ");
+    print(buf);
+    print("\n");
 
     close(sockfd);
 
