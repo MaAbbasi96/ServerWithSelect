@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -7,6 +6,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include "functions.h"
 
 #define PORT "4000"   // port we're listening on
 
@@ -50,7 +50,6 @@ int main(void)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
     if ((rv = getaddrinfo(NULL, PORT, &hints, &ai)) != 0) {
-        fprintf(stderr, "selectserver: %s\n", gai_strerror(rv));
         exit(1);
     }
     
@@ -73,7 +72,7 @@ int main(void)
 
     // if we got here, it means we didn't get bound
     if (p == NULL) {
-        fprintf(stderr, "selectserver: failed to bind\n");
+        perror("selectserver: failed to bind\n");
         exit(2);
     }
 
@@ -116,13 +115,18 @@ int main(void)
                         if (newfd > fdmax) {    // keep track of the max
                             fdmax = newfd;
                         }
-                        printf("selectserver: new connection from %s on "
-                            "socket %d on port %d\n",
-                            inet_ntop(remoteaddr.ss_family,
-                                get_in_addr((struct sockaddr*)&remoteaddr),
-                                remoteIP, INET6_ADDRSTRLEN),
-                            newfd,
-                            ntohs(remoteaddr.ss_family));
+                        print("selectserver: new connection from ");
+                        print(inet_ntop(remoteaddr.ss_family,
+                            get_in_addr((struct sockaddr*)&remoteaddr),
+                            remoteIP, INET6_ADDRSTRLEN));
+                        print("\n");
+                        // printf("selectserver: new connection from %s on "
+                            // "socket %d on port %d\n",
+                            // inet_ntop(remoteaddr.ss_family,
+                                // get_in_addr((struct sockaddr*)&remoteaddr),
+                                // remoteIP, INET6_ADDRSTRLEN),
+                            // newfd,
+                            // ntohs(remoteaddr.ss_family));
                     }
                 } else {
                     // handle data from a client
@@ -130,7 +134,7 @@ int main(void)
                         // got error or connection closed by client
                         if (nbytes == 0) {
                             // connection closed
-                            printf("selectserver: socket %d hung up\n", i);
+                            print("selectserver: somebody hung up");
                         } else {
                             perror("recv");
                         }
