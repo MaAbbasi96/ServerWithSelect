@@ -14,6 +14,9 @@ miniserver.o: miniserver.c
 miniserver: miniserver.o
 	$(CC) miniserver.o -o miniserver
 
+functions.o: functions.c functions.h
+	$(CC) -c functions.c
+
 clean: 
 	rm *.o
 	rm server
