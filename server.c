@@ -120,13 +120,6 @@ int main(void)
                             get_in_addr((struct sockaddr*)&remoteaddr),
                             remoteIP, INET6_ADDRSTRLEN));
                         print("\n");
-                        // printf("selectserver: new connection from %s on "
-                            // "socket %d on port %d\n",
-                            // inet_ntop(remoteaddr.ss_family,
-                                // get_in_addr((struct sockaddr*)&remoteaddr),
-                                // remoteIP, INET6_ADDRSTRLEN),
-                            // newfd,
-                            // ntohs(remoteaddr.ss_family));
                     }
                 } else {
                     // handle data from a client
