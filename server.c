@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include "functions.h"
+#include "linkedlist.h"
 
 #define PORT "4000"   // port we're listening on
 
@@ -127,7 +128,7 @@ int main(void)
                         // got error or connection closed by client
                         if (nbytes == 0) {
                             // connection closed
-                            print("selectserver: somebody hung up");
+                            print("selectserver: somebody hung up\n");
                         } else {
                             perror("recv");
                         }

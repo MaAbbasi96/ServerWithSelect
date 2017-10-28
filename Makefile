@@ -2,8 +2,8 @@ CC=gcc
 
 all: server miniserver
 
-server: server.o functions.o
-	$(CC) server.o functions.o -o server
+server: server.o functions.o linkedlist.o
+	$(CC) server.o functions.o linkedlist.o -o server
 
 miniserver: miniserver.o functions.o
 	$(CC) miniserver.o functions.o -o miniserver
@@ -16,6 +16,9 @@ miniserver.o: miniserver.c functions.h
 
 functions.o: functions.h functions.c
 	$(CC) -c functions.c
+
+linkedlist.o: linkedlist.h linkedlist.c
+	$(CC) -c linkedlist.c
 
 clean: 
 	rm *.o
