@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     int rv;
     char s[INET6_ADDRSTRLEN];
 
-    if (argc != 5 || strlen(argv[2]) > 5 || strlen(argv[3]) > 2) { //argv[1]: connecting to argv[2]: Miniserver Port argv[3]: Part No. argv[4]: file name
+    if (argc != 5 || strlen(argv[2]) > 5 || strlen(argv[3]) != 2) { //argv[1]: connecting to argv[2]: Miniserver Port argv[3]: Part No. argv[4]: file name
         perror("Bad Arguments\n");
         exit(1);
     }

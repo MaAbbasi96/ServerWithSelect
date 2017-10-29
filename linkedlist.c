@@ -6,8 +6,10 @@
 void print_list(node_t * head) {
     node_t * current = head;
 
-    while (current != NULL) {
+    while (current-> next != NULL) {
         print(current->port);
+        print("\n");
+        print(current->part_number);
         print("\n");
         current = current->next;
     }

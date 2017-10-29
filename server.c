@@ -47,7 +47,8 @@ char* get_ms_part_number(const char* buf){
         result[j] = buf[i];
         j++;
     }
-    result[j+1] = '\0';
+    result[j] = '\0';
+    j = strlen(result);
     return result;
 }
 
@@ -172,7 +173,11 @@ int main(void)
                     } else {
                         strcpy(ms_port, get_ms_port(buf));
                         strcpy(ms_pn, get_ms_part_number(buf));
-                        send(i, "Success", 8, 0);
+                        if(strcmp(ms_port, "file") != 0){ // request from miniserver
+                            push(head, ms_port, ms_pn);
+                            print_list(head);
+                            send(i, "Successfully added to list", 27, 0);
+                        }
                     }
                 } // END handle data from client
             } // END got new incoming connection
