@@ -8,6 +8,7 @@
 #include <netdb.h>
 #include "functions.h"
 #include "linkedlist.h"
+#include <stdio.h>
 
 #define PORT "4000"   // port we're listening on
 
@@ -19,6 +20,35 @@ void *get_in_addr(struct sockaddr *sa)
     }
 
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
+}
+
+char* get_ms_port(const char* buf){
+    int i;
+    char *result;
+    result = (char*) malloc(6 * sizeof(char));
+    for(i = 0; i < strlen(buf); i++){
+        if(buf[i] == '/')
+            break;
+        result[i] = buf[i];
+    }
+    result[i] = '\0';
+    return result;
+}
+
+char* get_ms_part_number(const char* buf){
+    int i, j = 0;
+    char *result;
+    result = (char*) malloc(3 * sizeof(char));
+    for(i = 0; i < strlen(buf); i++)
+        if(buf[i] == '/')
+            break;
+    i++;
+    for(i; i < strlen(buf); i++){
+        result[j] = buf[i];
+        j++;
+    }
+    result[j+1] = '\0';
+    return result;
 }
 
 int main(void)
@@ -40,7 +70,12 @@ int main(void)
     int yes=1;        // for setsockopt() SO_REUSEADDR, below
     int i, j, rv;
 
+    char ms_port[6], ms_pn[3];
+
     struct addrinfo hints, *ai, *p;
+
+    node_t * head = NULL;
+    head = malloc(sizeof(node_t));
 
     FD_ZERO(&master);    // clear the master and temp sets
     FD_ZERO(&read_fds);
@@ -135,7 +170,9 @@ int main(void)
                         close(i); // bye!
                         FD_CLR(i, &master); // remove from master set
                     } else {
-                        send(i, buf, nbytes, 0);
+                        strcpy(ms_port, get_ms_port(buf));
+                        strcpy(ms_pn, get_ms_part_number(buf));
+                        send(i, "Success", 8, 0);
                     }
                 } // END handle data from client
             } // END got new incoming connection

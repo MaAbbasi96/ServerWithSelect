@@ -8,7 +8,7 @@
 #include <arpa/inet.h>
 #include "functions.h"
 
-#define PORT "4000" // the port client will be connecting to 
+#define CONNECTINGPORT "4000" // the port client will be connecting to 
 
 #define MAXDATASIZE 1024 // max number of bytes we can get at once 
 
@@ -25,7 +25,7 @@ void *get_in_addr(struct sockaddr *sa)
 char* make_info_for_server(const char* port,const char* part_number){
     int i;
     char *info;
-    info = (char*) malloc(100 * sizeof(char));
+    info = (char*) malloc(9 * sizeof(char));
     strcpy(info, port);
     strcat(info, "/");
     strcat(info, part_number);
@@ -35,7 +35,7 @@ char* make_info_for_server(const char* port,const char* part_number){
 int main(int argc, char *argv[])
 {
     int sockfd, numbytes;  
-    char buf[MAXDATASIZE], ms_port[6], ms_part_number[3], file_name[91], info[100];
+    char buf[MAXDATASIZE], ms_port[6], ms_part_number[3], file_name[100], info[9];
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
+    if ((rv = getaddrinfo(argv[1], CONNECTINGPORT, &hints, &servinfo)) != 0) {
         return 1;
     }
 
