@@ -9,3 +9,9 @@ void print(const char* str){
 void perror(const char* str){
     write(2, str, strlen(str)+1);
 }
+
+void int_to_string(char* res, int num){
+    res[0] = '0' + (num/10);
+    res[1] = '0' + (num%10);
+    res[2] = '\0';
+}

@@ -8,7 +8,6 @@
 #include <netdb.h>
 #include "functions.h"
 #include "linkedlist.h"
-#include <stdio.h>
 
 #define PORT "4000"   // port we're listening on
 
@@ -69,7 +68,7 @@ int main(void)
     char remoteIP[INET6_ADDRSTRLEN];
 
     int yes=1;        // for setsockopt() SO_REUSEADDR, below
-    int i, j, rv;
+    int i, j, k, rv;
 
     char ms_port[6], ms_pn[3];
 
@@ -172,11 +171,23 @@ int main(void)
                         FD_CLR(i, &master); // remove from master set
                     } else {
                         strcpy(ms_port, get_ms_port(buf));
-                        strcpy(ms_pn, get_ms_part_number(buf));
                         if(strcmp(ms_port, "file") != 0){ // request from miniserver
+                            strcpy(ms_pn, get_ms_part_number(buf));
                             push(head, ms_port, ms_pn);
-                            print_list(head);
                             send(i, "Successfully added to list", 27, 0);
+                        }
+                        else{ // request from client and give it the ports
+                            char file_ports[7 * 100];
+                            for(k = 0; k < size(head); k++){
+                                char file_port[7], to_string[2];
+                                int_to_string(to_string, k);
+                                strcpy(file_port, find_port(head, to_string));
+                                file_port[(int)strlen(file_port) + 1] = '\0';
+                                file_port[(int)strlen(file_port)] = '/';
+                                strcat(file_ports, file_port);
+                            }
+                            file_ports[(int)strlen(file_ports)] = '\0';
+                            send(i, file_ports, strlen(file_ports), 0);
                         }
                     }
                 } // END handle data from client

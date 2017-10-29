@@ -37,3 +37,13 @@ char* find_port(node_t * head, char* pn){
     }
     return "inval";
 }
+
+int size(node_t * head){
+    int i = 0;
+    node_t * current = head;
+    while (current != NULL) {
+        i++;
+        current = current->next;
+    }
+    return i - 1;
+}

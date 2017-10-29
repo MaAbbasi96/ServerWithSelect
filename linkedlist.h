@@ -9,5 +9,6 @@ typedef struct node {
 void push(node_t * head, char* p, char* pn);
 char* find_port(node_t * head, char* pn);
 void print_list(node_t * head);
+int size(node_t * head);
 
 #endif
