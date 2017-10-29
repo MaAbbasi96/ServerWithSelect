@@ -17,7 +17,7 @@ miniserver.o: miniserver.c functions.h
 functions.o: functions.h functions.c
 	$(CC) -c functions.c
 
-linkedlist.o: linkedlist.h linkedlist.c
+linkedlist.o: linkedlist.h linkedlist.c functions.h
 	$(CC) -c linkedlist.c
 
 clean: 

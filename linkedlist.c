@@ -1,13 +1,14 @@
-#include <stdio.h> //remove it
 #include "linkedlist.h"
 #include <stdlib.h>
 #include <string.h>
+#include "functions.h"
 
 void print_list(node_t * head) {
     node_t * current = head;
 
     while (current != NULL) {
-        printf("%s\n", current->port);
+        print(current->port);
+        print("\n");
         current = current->next;
     }
 }

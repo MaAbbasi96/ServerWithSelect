@@ -10,7 +10,7 @@
 
 #define PORT "4000" // the port client will be connecting to 
 
-#define MAXDATASIZE 100 // max number of bytes we can get at once 
+#define MAXDATASIZE 1024 // max number of bytes we can get at once 
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -22,18 +22,32 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
+char* make_info_for_server(const char* port,const char* part_number){
+    int i;
+    char *info;
+    info = (char*) malloc(100 * sizeof(char));
+    strcpy(info, port);
+    strcat(info, "/");
+    strcat(info, part_number);
+    return info;
+}
+
 int main(int argc, char *argv[])
 {
     int sockfd, numbytes;  
-    char buf[MAXDATASIZE];
+    char buf[MAXDATASIZE], ms_port[6], ms_part_number[3], file_name[91], info[100];
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
 
-    if (argc != 4) {
-        perror("usage: client hostname\n");
+    if (argc != 5 || strlen(argv[2]) > 5 || strlen(argv[3]) > 2) { //argv[1]: connecting to argv[2]: Miniserver Port argv[3]: Part No. argv[4]: file name
+        perror("Bad Arguments\n");
         exit(1);
     }
+
+    strcpy(ms_port, argv[2]);
+    strcpy(ms_part_number, argv[3]);
+    strcpy(file_name, argv[4]);
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -73,7 +87,8 @@ int main(int argc, char *argv[])
 
     freeaddrinfo(servinfo); // all done with this structure
 
-    send(sockfd, "salam", 6, 0);
+    strcpy(info, make_info_for_server(ms_port, ms_part_number));
+    send(sockfd, info, strlen(info), 0);
     if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) < 0) {
         perror("recv");
         exit(1);
