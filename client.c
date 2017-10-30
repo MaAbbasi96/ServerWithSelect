@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include "functions.h"
+#include <stdio.h>
 
 #define CONNECTINGPORT "4000" // the port client will be connecting to 
 
@@ -32,10 +33,25 @@ char* make_info_for_server(const char* port,const char* part_number){
     return info;
 }
 
+void get_server_port(char* port, char* ports){
+    int i;
+    char removed_substr[7];
+    for(i = 0; i < strlen(ports); i++){
+        if(ports[i] == '/')
+            break;
+        port[i] = ports[i];
+    }
+    port[i] = '\0';
+    strcpy(removed_substr, port);
+    strcat(removed_substr, "/");
+    remove_substring(ports, removed_substr);
+}
+
+
 int main(int argc, char *argv[])
 {
     int sockfd, numbytes;  
-    char buf[MAXDATASIZE], info[8];
+    char buf[MAXDATASIZE], info[8], ports[MAXDATASIZE], port[6];
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
@@ -95,7 +111,59 @@ int main(int argc, char *argv[])
     print("client: received ");
     print(buf);
     print("\n");
+    strcpy(ports, buf);
     close(sockfd);
+
+    do{
+        get_server_port(port, ports);
+        if ((rv = getaddrinfo(argv[1], port, &hints, &servinfo)) != 0) {
+            return 1;
+        }
+    
+        // loop through all the results and connect to the first we can
+        for(p = servinfo; p != NULL; p = p->ai_next) {
+            if ((sockfd = socket(p->ai_family, p->ai_socktype,
+                    p->ai_protocol)) == -1) {
+                perror("client: socket");
+                continue;
+            }
+    
+            if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+                close(sockfd);
+                perror("client: connect");
+                continue;
+            }
+    
+            break;
+        }
+    
+        if (p == NULL) {
+            perror("client: failed to connect\n");
+            return 2;
+        }
+    
+        inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
+                s, sizeof s);
+        print("client: connecting to ");
+        print(s);
+        print("\n");
+    
+        freeaddrinfo(servinfo); // all done with this structure
+        
+        strcpy(info, "file/");
+    
+        send(sockfd, info, strlen(info), 0);
+        if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) < 0) {
+            perror("recv");
+            exit(1);
+        }
+    
+        buf[numbytes] = '\0';
+        print("client: received ");
+        print(buf);
+        print("\n");
+        close(sockfd);
+    } while(strlen(ports) > 0);
 
     return 0;
 }

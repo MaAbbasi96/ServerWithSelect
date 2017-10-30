@@ -184,7 +184,10 @@ int main(void)
                                 strcpy(file_port, find_port(head, to_string));
                                 file_port[(int)strlen(file_port) + 1] = '\0';
                                 file_port[(int)strlen(file_port)] = '/';
-                                strcat(file_ports, file_port);
+                                if(k == 0)
+                                    strcpy(file_ports, file_port);
+                                else
+                                    strcat(file_ports, file_port);
                             }
                             file_ports[(int)strlen(file_ports)] = '\0';
                             send(i, file_ports, strlen(file_ports), 0);

@@ -36,9 +36,23 @@ int main(int argc, char *argv[])
 {
     int sockfd, numbytes;  
     char buf[MAXDATASIZE], ms_port[6], ms_part_number[3], file_name[100], info[9];
-    struct addrinfo hints, *servinfo, *p;
+    struct addrinfo hints, *servinfo, *p, *ai;
     int rv;
     char s[INET6_ADDRSTRLEN];
+    fd_set master;    // master file descriptor list
+    fd_set read_fds;  // temp file descriptor list for select()
+    int fdmax;        // maximum file descriptor number
+
+    int listener;     // listening socket descriptor
+    int newfd;        // newly accept()ed socket descriptor
+    struct sockaddr_storage remoteaddr; // client address
+    socklen_t addrlen;
+    int nbytes;
+
+    char remoteIP[INET6_ADDRSTRLEN];
+    
+    int yes=1;        // for setsockopt() SO_REUSEADDR, below
+    int i, j;
 
     if (argc != 5 || strlen(argv[2]) > 5 || strlen(argv[3]) != 2) { //argv[1]: connecting to argv[2]: Miniserver Port argv[3]: Part No. argv[4]: file name
         perror("Bad Arguments\n");
@@ -101,6 +115,106 @@ int main(int argc, char *argv[])
     print("\n");
 
     close(sockfd);
+
+    FD_ZERO(&master);    // clear the master and temp sets
+    FD_ZERO(&read_fds);
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+    if ((rv = getaddrinfo(NULL, ms_port, &hints, &ai)) != 0) {
+        exit(1);
+    }
+    
+    for(p = ai; p != NULL; p = p->ai_next) {
+        listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (listener < 0) { 
+            continue;
+        }
+        
+        // lose the pesky "address already in use" error message
+        setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+
+        if (bind(listener, p->ai_addr, p->ai_addrlen) < 0) {
+            close(listener);
+            continue;
+        }
+
+        break;
+    }
+
+    // if we got here, it means we didn't get bound
+    if (p == NULL) {
+        perror("selectserver: failed to bind\n");
+        exit(2);
+    }
+
+    freeaddrinfo(ai); // all done with this
+
+    // listen
+    if (listen(listener, 10) == -1) {
+        perror("listen");
+        exit(3);
+    }
+
+    // add the listener to the master set
+    FD_SET(listener, &master);
+
+    // keep track of the biggest file descriptor
+    fdmax = listener; // so far, it's this one
+
+    // main loop
+    for(;;) {
+        read_fds = master; // copy it
+        if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
+            perror("select");
+            exit(4);
+        }
+
+        // run through the existing connections looking for data to read
+        for(i = 0; i <= fdmax; i++) {
+            if (FD_ISSET(i, &read_fds)) { // we got one!!
+                if (i == listener) {
+                    // handle new connections
+                    addrlen = sizeof remoteaddr;
+                    newfd = accept(listener,
+                        (struct sockaddr *)&remoteaddr,
+                        &addrlen);
+
+                    if (newfd == -1) {
+                        perror("accept");
+                    } else {
+                        FD_SET(newfd, &master); // add to master set
+                        if (newfd > fdmax) {    // keep track of the max
+                            fdmax = newfd;
+                        }
+                        print("selectserver: new connection from ");
+                        print(inet_ntop(remoteaddr.ss_family,
+                            get_in_addr((struct sockaddr*)&remoteaddr),
+                            remoteIP, INET6_ADDRSTRLEN));
+                        print("\n");
+                    }
+                } else {
+                    // handle data from a client
+                    if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
+                        // got error or connection closed by client
+                        if (nbytes == 0) {
+                            // connection closed
+                            print("selectserver: somebody hung up\n");
+                        } else {
+                            perror("recv");
+                        }
+                        close(i); // bye!
+                        FD_CLR(i, &master); // remove from master set
+                    } else {
+                        send(i, "salam", 6, 0);
+                    }
+                } // END handle data from client
+            } // END got new incoming connection
+        } // END looping through file descriptors
+    } // END for(;;)--and you thought it would never end!
+    
 
     return 0;
 }

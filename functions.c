@@ -15,3 +15,8 @@ void int_to_string(char* res, int num){
     res[1] = '0' + (num%10);
     res[2] = '\0';
 }
+
+void remove_substring(char *s,const char *toremove)
+{
+    memmove(s,s+strlen(toremove),1+strlen(s+strlen(toremove)));
+}
