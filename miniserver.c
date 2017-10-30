@@ -6,7 +6,9 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include "functions.h"
+#include <stdio.h>
 
 #define CONNECTINGPORT "4000" // the port client will be connecting to 
 
@@ -53,6 +55,7 @@ int main(int argc, char *argv[])
     
     int yes=1;        // for setsockopt() SO_REUSEADDR, below
     int i, j;
+    int file_fd;    //fd to opened file
 
     if (argc != 5 || strlen(argv[2]) > 5 || strlen(argv[3]) != 2) { //argv[1]: connecting to argv[2]: Miniserver Port argv[3]: Part No. argv[4]: file name
         perror("Bad Arguments\n");
@@ -208,7 +211,13 @@ int main(int argc, char *argv[])
                         close(i); // bye!
                         FD_CLR(i, &master); // remove from master set
                     } else {
-                        send(i, "salam", 6, 0);
+                        file_fd = open(file_name, O_RDONLY);
+                        if (file_fd == -1) {
+                            perror ("open");
+                            return 2;
+                        }
+                        read(file_fd, buf, MAXDATASIZE);
+                        send(i, buf, strlen(buf), 0);
                     }
                 } // END handle data from client
             } // END got new incoming connection
