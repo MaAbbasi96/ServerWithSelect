@@ -218,6 +218,7 @@ int main(int argc, char *argv[])
                         }
                         read(file_fd, buf, MAXDATASIZE);
                         send(i, buf, strlen(buf), 0);
+                        close(file_fd);
                     }
                 } // END handle data from client
             } // END got new incoming connection

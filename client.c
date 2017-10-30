@@ -6,12 +6,13 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include "functions.h"
 #include <stdio.h>
 
-#define CONNECTINGPORT "4000" // the port client will be connecting to 
+#define CONNECTINGPORT "4000" // the port client will be connecting to
 
-#define MAXDATASIZE 1024 // max number of bytes we can get at once 
+#define MAXDATASIZE 1024 // max number of bytes we can get at once
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -50,13 +51,13 @@ void get_server_port(char* port, char* ports){
 
 int main(int argc, char *argv[])
 {
-    int sockfd, numbytes;  
+    int sockfd, numbytes, file_fd;
     char buf[MAXDATASIZE], info[8], ports[MAXDATASIZE], port[6];
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
 
-    if (argc != 2) { 
+    if (argc != 3) {
         perror("usage: client hostname\n");
         exit(1);
     }
@@ -98,7 +99,7 @@ int main(int argc, char *argv[])
     print("\n");
 
     freeaddrinfo(servinfo); // all done with this structure
-    
+
     strcpy(info, "file/");
 
     send(sockfd, info, strlen(info), 0);
@@ -119,7 +120,7 @@ int main(int argc, char *argv[])
         if ((rv = getaddrinfo(argv[1], port, &hints, &servinfo)) != 0) {
             return 1;
         }
-    
+
         // loop through all the results and connect to the first we can
         for(p = servinfo; p != NULL; p = p->ai_next) {
             if ((sockfd = socket(p->ai_family, p->ai_socktype,
@@ -127,41 +128,45 @@ int main(int argc, char *argv[])
                 perror("client: socket");
                 continue;
             }
-    
+
             if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
                 close(sockfd);
                 perror("client: connect");
                 continue;
             }
-    
+
             break;
         }
-    
+
         if (p == NULL) {
             perror("client: failed to connect\n");
             return 2;
         }
-    
+
         inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
                 s, sizeof s);
         print("client: connecting to ");
         print(s);
         print("\n");
-    
+
         freeaddrinfo(servinfo); // all done with this structure
-        
+
         strcpy(info, "file/");
-    
+
         send(sockfd, info, strlen(info), 0);
         if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) < 0) {
             perror("recv");
             exit(1);
         }
-    
+        // print("client: received ");
+        // print(buf);
+        // print("\n");
         buf[numbytes] = '\0';
-        print("client: received ");
-        print(buf);
-        print("\n");
+        buf[strlen(buf)] = '\n';
+        printf("%d\n", (int)strlen(buf));
+        file_fd = open(argv[2], O_WRONLY | O_APPEND | O_CREAT, 0666);
+        write(file_fd, buf, strlen(buf)+1);
+        close(file_fd);
         close(sockfd);
     } while(strlen(ports) > 0);
 
