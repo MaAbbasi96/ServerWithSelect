@@ -8,7 +8,6 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include "functions.h"
-#include <stdio.h>
 
 #define CONNECTINGPORT "4000" // the port client will be connecting to
 
@@ -49,24 +48,22 @@ void get_server_port(char* port, char* ports){
 }
 
 
-int main(int argc, char *argv[])
+int main()
 {
     int sockfd, numbytes, file_fd;
-    char buf[MAXDATASIZE], info[8], ports[MAXDATASIZE], port[6];
+    char buf[MAXDATASIZE], info[8], ports[MAXDATASIZE], port[6], file_name[100];
     struct addrinfo hints, *servinfo, *p;
     int rv;
     char s[INET6_ADDRSTRLEN];
 
-    if (argc != 3) {
-        perror("usage: client hostname\n");
-        exit(1);
-    }
+    print("Enter File Name:\n");
+    input(file_name);
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    if ((rv = getaddrinfo(argv[1], CONNECTINGPORT, &hints, &servinfo)) != 0) {
+    if ((rv = getaddrinfo("localhost", CONNECTINGPORT, &hints, &servinfo)) != 0) {
         return 1;
     }
 
@@ -117,7 +114,7 @@ int main(int argc, char *argv[])
 
     do{
         get_server_port(port, ports);
-        if ((rv = getaddrinfo(argv[1], port, &hints, &servinfo)) != 0) {
+        if ((rv = getaddrinfo("localhost", port, &hints, &servinfo)) != 0) {
             return 1;
         }
 
@@ -162,8 +159,7 @@ int main(int argc, char *argv[])
         // print(buf);
         // print("\n");
         buf[numbytes] = '\0';
-        printf("%d\n%s\n", (int)strlen(buf), buf);
-        file_fd = open(argv[2], O_WRONLY | O_APPEND | O_CREAT, 0666);
+        file_fd = open(file_name, O_WRONLY | O_APPEND | O_CREAT, 0666);
         write(file_fd, buf, strlen(buf));
         close(file_fd);
         close(sockfd);

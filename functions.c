@@ -20,3 +20,9 @@ void remove_substring(char *s,const char *toremove)
 {
     memmove(s,s+strlen(toremove),1+strlen(s+strlen(toremove)));
 }
+
+void input(char* str){
+    int i;
+    i = read(0, str, 1000);
+    str[i-1] = '\0';
+}

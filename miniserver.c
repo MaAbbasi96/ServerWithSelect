@@ -9,7 +9,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "functions.h"
-#include <stdio.h>
 
 #define CONNECTINGPORT "4000" // the port client will be connecting to
 
@@ -41,7 +40,7 @@ long get_file_size(int file_fd) {
     return buf.st_size;
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     int sockfd, numbytes;
     long file_size;
@@ -65,20 +64,25 @@ int main(int argc, char *argv[])
     int i, j;
     int file_fd;    //fd to opened file
 
-    if (argc != 5 || strlen(argv[2]) > 5 || strlen(argv[3]) != 2) { //argv[1]: connecting to argv[2]: Miniserver Port argv[3]: Part No. argv[4]: file name
+    print("Enter Port:\n");
+    input(ms_port);
+
+    print("Enter Part Number:\n");
+    input(ms_part_number);
+
+    print("Enter File Name:\n");
+    input(file_name);
+
+    if (strlen(ms_port) > 5 || strlen(ms_part_number) != 2) {
         perror("Bad Arguments\n");
         exit(1);
     }
-
-    strcpy(ms_port, argv[2]);
-    strcpy(ms_part_number, argv[3]);
-    strcpy(file_name, argv[4]);
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    if ((rv = getaddrinfo(argv[1], CONNECTINGPORT, &hints, &servinfo)) != 0) {
+    if ((rv = getaddrinfo("localhost", CONNECTINGPORT, &hints, &servinfo)) != 0) {
         return 1;
     }
 
@@ -227,7 +231,6 @@ int main(int argc, char *argv[])
                         strcpy(buf, "");
                         file_size = get_file_size(file_fd);
                         read(file_fd, buf, file_size);
-                        printf("%ld\n%s\n", file_size, buf);
                         send(i, buf, strlen(buf), 0);
                         close(file_fd);
                     }
