@@ -67,7 +67,7 @@ int main()
     print("Enter Port:\n");
     input(ms_port);
 
-    print("Enter Part Number:\n");
+    print("Enter Part Number (Must be exactly 2 digits):\n");
     input(ms_part_number);
 
     print("Enter File Name:\n");
