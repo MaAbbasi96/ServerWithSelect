@@ -6,13 +6,14 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include "functions.h"
 #include <stdio.h>
 
-#define CONNECTINGPORT "4000" // the port client will be connecting to 
+#define CONNECTINGPORT "4000" // the port client will be connecting to
 
-#define MAXDATASIZE 1024 // max number of bytes we can get at once 
+#define MAXDATASIZE 1024 // max number of bytes we can get at once
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -34,9 +35,16 @@ char* make_info_for_server(const char* port,const char* part_number){
     return info;
 }
 
+long get_file_size(int file_fd) {
+    struct stat buf;
+    fstat(file_fd, &buf);
+    return buf.st_size;
+}
+
 int main(int argc, char *argv[])
 {
-    int sockfd, numbytes;  
+    int sockfd, numbytes;
+    long file_size;
     char buf[MAXDATASIZE], ms_port[6], ms_part_number[3], file_name[100], info[9];
     struct addrinfo hints, *servinfo, *p, *ai;
     int rv;
@@ -52,7 +60,7 @@ int main(int argc, char *argv[])
     int nbytes;
 
     char remoteIP[INET6_ADDRSTRLEN];
-    
+
     int yes=1;        // for setsockopt() SO_REUSEADDR, below
     int i, j;
     int file_fd;    //fd to opened file
@@ -129,13 +137,13 @@ int main(int argc, char *argv[])
     if ((rv = getaddrinfo(NULL, ms_port, &hints, &ai)) != 0) {
         exit(1);
     }
-    
+
     for(p = ai; p != NULL; p = p->ai_next) {
         listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (listener < 0) { 
+        if (listener < 0) {
             continue;
         }
-        
+
         // lose the pesky "address already in use" error message
         setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
@@ -216,7 +224,10 @@ int main(int argc, char *argv[])
                             perror ("open");
                             return 2;
                         }
-                        read(file_fd, buf, MAXDATASIZE);
+                        strcpy(buf, "");
+                        file_size = get_file_size(file_fd);
+                        read(file_fd, buf, file_size);
+                        printf("%ld\n%s\n", file_size, buf);
                         send(i, buf, strlen(buf), 0);
                         close(file_fd);
                     }
@@ -224,7 +235,7 @@ int main(int argc, char *argv[])
             } // END got new incoming connection
         } // END looping through file descriptors
     } // END for(;;)--and you thought it would never end!
-    
+
 
     return 0;
 }

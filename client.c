@@ -162,10 +162,9 @@ int main(int argc, char *argv[])
         // print(buf);
         // print("\n");
         buf[numbytes] = '\0';
-        buf[strlen(buf)] = '\n';
-        printf("%d\n", (int)strlen(buf));
+        printf("%d\n%s\n", (int)strlen(buf), buf);
         file_fd = open(argv[2], O_WRONLY | O_APPEND | O_CREAT, 0666);
-        write(file_fd, buf, strlen(buf)+1);
+        write(file_fd, buf, strlen(buf));
         close(file_fd);
         close(sockfd);
     } while(strlen(ports) > 0);
